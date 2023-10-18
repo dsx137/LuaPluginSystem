@@ -1,0 +1,6 @@
+F:/cpp/plugsome/build/CMakeFiles/plugsome.dir
+F:/cpp/plugsome/build/CMakeFiles/edit_cache.dir
+F:/cpp/plugsome/build/CMakeFiles/rebuild_cache.dir
+F:/cpp/plugsome/build/LUA/CMakeFiles/LUA.dir
+F:/cpp/plugsome/build/LUA/CMakeFiles/edit_cache.dir
+F:/cpp/plugsome/build/LUA/CMakeFiles/rebuild_cache.dir

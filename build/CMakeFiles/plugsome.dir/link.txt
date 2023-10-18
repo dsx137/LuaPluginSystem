@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\plugsome.dir/objects.a
+C:\mingw64\bin\ar.exe qc CMakeFiles\plugsome.dir/objects.a @CMakeFiles\plugsome.dir\objects1.rsp
+C:\mingw64\bin\g++.exe -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\plugsome.dir/objects.a -Wl,--no-whole-archive -o bin\plugsome.exe -Wl,--out-implib,bin\libplugsome.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\plugsome.dir\linkLibs.rsp
