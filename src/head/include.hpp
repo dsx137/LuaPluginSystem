@@ -4,6 +4,11 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <vector>
+#include <memory>
+#include <stdexcept>
+#include <map>
+#include <optional>
 
 #include <lua.hpp>
 
