@@ -14,7 +14,8 @@
 //         lua_getglobal(L, "CreatePluginInstance");
 //         if (lua_isfunction(L, -1)) {
 //             // 创建插件实例
-//             Plugin* plugin = reinterpret_cast<Plugin*>(lua_touserdata(L, -1));
+//             Plugin* plugin = reinterpret_cast<Plugin*>(lua_touserdata(L,
+//             -1));
 //             if (plugin) {
 //                 plugin->Initialize();
 //                 plugins.push_back(plugin);
@@ -26,39 +27,36 @@
 // }
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    std::cout << GetCurrentExecutableDirectory() << std::endl;
-    lua_State* lua = luaL_newstate();
-    luaL_openlibs(lua);
+  std::cout << "Hello, World!" << std::endl;
+  std::cout << GetCurrentExecutableDirectory() << std::endl;
+  lua_State *lua = luaL_newstate();
+  luaL_openlibs(lua);
 
-    luaopen_base(lua);
-    //打开string库（使用string时需要打开）
-    luaopen_string(lua);
-    //打开table库
-    luaopen_table(lua);
-    //打开IO库
-    luaL_openlibs(lua);
-    //打开math库
-    luaopen_math(lua);
+  luaopen_base(lua);
+  //打开string库（使用string时需要打开）
+  luaopen_string(lua);
+  //打开table库
+  luaopen_table(lua);
+  //打开IO库
+  luaL_openlibs(lua);
+  //打开math库
+  luaopen_math(lua);
 
-    std::string pluginPath = GetCurrentExecutableDirectory() + "/plugin";
+  std::string pluginPath = GetCurrentExecutableDirectory() + "/plugin";
 
-
-    if (!std::filesystem::is_directory(pluginPath)) {
-        std::filesystem::create_directory(pluginPath);
-    }
-    else {
-        for (const auto& entry : std::filesystem::directory_iterator(pluginPath)) {
-            if (entry.is_regular_file() && entry.path().extension() == ".lua") {
-                if (luaL_loadfile(lua, entry.path().string().c_str()) != LUA_OK) {
-                    std::cout << lua_tostring(lua, -1) << std::endl;
-                }
-                else {
-                    lua_pcall(lua, 0, 0, 0);
-                }
-            }
+  if (!std::filesystem::is_directory(pluginPath)) {
+    std::filesystem::create_directory(pluginPath);
+  } else {
+    for (const auto &entry : std::filesystem::directory_iterator(pluginPath)) {
+      if (entry.is_regular_file() && entry.path().extension() == ".lua") {
+        if (luaL_loadfile(lua, entry.path().string().c_str()) != LUA_OK) {
+          std::cout << lua_tostring(lua, -1) << std::endl;
+        } else {
+          lua_pcall(lua, 0, 0, 0);
         }
+      }
     }
-    lua_close(lua);
-    return 0;
+  }
+  lua_close(lua);
+  return 0;
 }
