@@ -1,4 +1,4 @@
-#include "head/cpphead.h"
+#include "head/cpphead.hpp"
 
 std::string GetCurrentExecutableDirectory() {
     std::string directory;

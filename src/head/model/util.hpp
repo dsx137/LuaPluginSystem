@@ -1,5 +1,5 @@
 #pragma once
-#include "../cpphead.h"
+#include "../cpphead.hpp"
 
 
 std::string GetCurrentExecutableDirectory();
