@@ -2,12 +2,13 @@
 
 class PluginManager {
 public:
-    std::map<std::string, Plugin*>* plugins;
+    std::vector<Plugin*>* plugins;
     PluginManager();
     ~PluginManager();
     void LoadAllPlugins();
     bool LoadPlugin(const std::filesystem::path& pluginPath);
-    void Update();
+    bool UnloadPlugin(const std::string& id);
+    void Update(std::string s);
 
-    lua_State* L;
+    sol::state lua;
 };
