@@ -2,35 +2,31 @@
 
 
 PluginManager::PluginManager() {
-    plugins = new std::map<std::string, Plugin*>();
-    L = luaL_newstate();
-    luaL_openlibs(L);
-    luaopen_base(L);
-    luaopen_string(L);
-    luaopen_table(L);
-    luaL_openlibs(L);
-    luaopen_math(L);
+    plugins = new std::vector<Plugin*>();
+    lua = sol::state();
+    lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::table, sol::lib::math, sol::lib::io);
+    // lua.new_usertype<Plugin>("Plugin",
+    //     sol::constructors<Plugin(std::string, std::function<void()>, std::function<void()>, std::function<void()>)>(),
+    //     "id", &Plugin::id,
+    //     "Initialize", &Plugin::Initialize,
+    //     "Update", &Plugin::Update,
+    //     "Uninitialize", &Plugin::Uninitialize
+    // );
 }
 
 PluginManager::~PluginManager() {
-    Printer::Log::printLine("Unloading plugins...");
+    Printer::Log::printLine("Unloading all plugins...");
     for (auto plugin : *plugins) {
-        try {
-            plugin.second->Uninitialize();
-        } catch (const std::exception& e) {
-            Printer::Err::printLine(e);
-        }
-        delete plugin.second;
+        this->UnloadPlugin(plugin->id);
     }
 
     delete plugins;
-    lua_close(this->L);
 }
 
-void PluginManager::Update() {
+void PluginManager::Update(std::string s) {
     for (auto plugin : *plugins) {
         try {
-            plugin.second->Update();
+            plugin->Update(s);
         } catch (const std::exception& e) {
             Printer::Err::printLine(e);
         }
@@ -46,7 +42,6 @@ void PluginManager::LoadAllPlugins() {
         for (const auto& entry : std::filesystem::directory_iterator(pluginPath)) {
             if (entry.is_regular_file() && entry.path().extension() == ".lua") {
                 this->LoadPlugin(entry.path());
-                std::cout << lua_tostring(this->L, -1) << std::endl;
             }
         }
     }
@@ -55,10 +50,39 @@ void PluginManager::LoadAllPlugins() {
 bool PluginManager::LoadPlugin(const std::filesystem::path& path) {
     bool runState = true;
     try {
-        Plugin* plugin = new Plugin(this->L, path);
-        plugins->emplace(plugin->PLUGIN_ID, plugin);
-        Printer::Log::printLine("Plugin loaded: " + (std::string)plugin->PLUGIN_ID);
-        plugin->Initialize();
+        sol::object result = lua.do_file(path.string());
+        // if (result.is<Plugin*>()) {
+        //     Plugin* plugin = result.as<Plugin*>();
+        //     plugins->push_back(plugin);
+        //     Printer::Log::printLine("Plugin loaded: " + (std::string)plugin->id);
+        //     plugin->Initialize();        
+        if (result.is<sol::table>()) {
+            Plugin* plugin = new Plugin(result.as<sol::table>());
+            plugins->push_back(plugin);
+            Printer::Log::printLine("Plugin loaded: " + (std::string)plugin->id);
+            plugin->Initialize();
+        } else {
+            throw std::runtime_error(path.filename().string() + ": Plugin file must return a Plugin instance.");
+        }
+    } catch (const std::exception& e) {
+        Printer::Err::printLine(e);
+        runState = false;
+    }
+
+    return runState;
+}
+
+bool PluginManager::UnloadPlugin(const std::string& id) {
+    bool runState = true;
+    try {
+        for (auto plugin : *plugins) {
+            if (plugin->id == id) {
+                plugin->Uninitialize();
+                plugins->erase(std::remove(plugins->begin(), plugins->end(), plugin), plugins->end());
+                delete plugin;
+                break;
+            }
+        }
     } catch (const std::exception& e) {
         Printer::Err::printLine(e);
         runState = false;

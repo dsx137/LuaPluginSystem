@@ -11,6 +11,7 @@
 #include <optional>
 
 #include <lua.hpp>
+#include <sol.hpp>
 
 #ifdef _WIN32 // Windows系统
 #include <Windows.h>
