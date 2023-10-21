@@ -12,22 +12,21 @@ private:
     SetterType setter;
 public:
     Property(
-        T initValue,
+        ValueType initValue,
         GetterType getterFunc,
         SetterType setterFunc
     ) : value(initValue), getter(getterFunc), setter(setterFunc) {}
 
-    Property(
-        GetterType getterFunc,
-        SetterType setterFunc
-    ) : getter(getterFunc), setter(setterFunc) {}
-
     operator T () {
-        return getter(value);
+        return this->getter(value);
+    }
+
+    T& operator* () {
+        return this->operator T();
     }
 
     Property& operator=(T newValue) {
-        setter(this->value, newValue);
+        this->setter(this->value, newValue);
         return *this;
     }
 };
