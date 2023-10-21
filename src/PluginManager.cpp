@@ -15,11 +15,7 @@ PluginManager::PluginManager() {
 }
 
 PluginManager::~PluginManager() {
-    Printer::Log::printLine("Unloading all plugins...");
-    for (auto plugin : *plugins) {
-        this->UnloadPlugin(plugin->id);
-    }
-
+    this->UnloadAll();
     delete plugins;
 }
 
@@ -33,21 +29,34 @@ void PluginManager::Update(std::string s) {
     }
 }
 
-void PluginManager::LoadAllPlugins() {
-
+void PluginManager::LoadAll() {
     std::filesystem::path pluginPath = GetCurrentExecutableDirectory() + "/plugin";
     if (!std::filesystem::is_directory(pluginPath)) {
         std::filesystem::create_directory(pluginPath);
     } else {
         for (const auto& entry : std::filesystem::directory_iterator(pluginPath)) {
             if (entry.is_regular_file() && entry.path().extension() == ".lua") {
-                this->LoadPlugin(entry.path());
+                this->Load(entry.path());
             }
         }
     }
 }
 
-bool PluginManager::LoadPlugin(const std::filesystem::path& path) {
+void PluginManager::UnloadAll() {
+    if (!plugins->empty()) {
+        for (auto plugin : *plugins) {
+            this->Unload(plugin->id);
+        }
+    }
+}
+
+void PluginManager::ReloadAll() {
+    Printer::Log::printLine("Reloading all plugins...");
+    this->UnloadAll();
+    this->LoadAll();
+}
+
+bool PluginManager::Load(const std::filesystem::path& path) {
     bool runState = true;
     try {
         sol::object result = lua.do_file(path.string());
@@ -72,20 +81,23 @@ bool PluginManager::LoadPlugin(const std::filesystem::path& path) {
     return runState;
 }
 
-bool PluginManager::UnloadPlugin(const std::string& id) {
-    bool runState = true;
-    try {
-        for (auto plugin : *plugins) {
-            if (plugin->id == id) {
+bool PluginManager::Unload(const std::string& id) {
+    bool runState = false;
+
+    for (auto plugin : *plugins) {
+        if (plugin->id == id) {
+            try {
                 plugin->Uninitialize();
-                plugins->erase(std::remove(plugins->begin(), plugins->end(), plugin), plugins->end());
-                delete plugin;
-                break;
+                runState = true;
+            } catch (const std::exception& e) {
+                Printer::Err::printLine(e);
+                runState = false;
             }
+            plugins->erase(std::remove(plugins->begin(), plugins->end(), plugin), plugins->end());
+            Printer::Log::printLine("Plugin unloaded: " + id);
+            delete plugin;
+            break;
         }
-    } catch (const std::exception& e) {
-        Printer::Err::printLine(e);
-        runState = false;
     }
 
     return runState;
